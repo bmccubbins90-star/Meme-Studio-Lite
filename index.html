@@ -1,0 +1,306 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meme Studio Lite – Make Memes Fast</title>
+  <meta name="description" content="Free, fast meme maker. Upload an image, add text, drag, and export as PNG/JPG. 100% in your browser." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { display: ['Anton', 'Impact', 'system-ui'], sans: ['Inter','system-ui'] },
+          boxShadow: { soft: '0 10px 30px rgba(0,0,0,0.12)'}
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+  <style>
+    /* Hide native file input */
+    input[type=file] { position: absolute; left: -9999px; }
+    /* Text outline mimic for on-canvas preview labels */
+    .stroke-text { -webkit-text-stroke: 2px #000; text-shadow: 2px 2px 0 #000, -2px 2px 0 #000, 2px -2px 0 #000, -2px -2px 0 #000; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-400"></div>
+        <div>
+          <h1 class="font-bold tracking-tight">Meme Studio Lite</h1>
+          <p class="text-xs text-slate-500 -mt-0.5">Free, fast, ad‑friendly meme tool</p>
+        </div>
+      </div>
+      <nav class="hidden sm:flex items-center gap-3 text-sm">
+        <a href="#how" class="hover:text-indigo-600">How it works</a>
+        <a href="#faq" class="hover:text-indigo-600">FAQ</a>
+        <a href="#share" class="hover:text-indigo-600">Share</a>
+      </nav>
+    </div>
+  </header>  <!-- Main -->  <main class="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-12 gap-6">
+    <!-- Controls -->
+    <section class="lg:col-span-4">
+      <div class="bg-white rounded-2xl shadow-soft p-4 space-y-4">
+        <h2 class="font-semibold text-lg">Controls</h2>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="col-span-2">
+            <span class="text-sm">Upload image</span>
+            <input id="fileInput" type="file" accept="image/*" />
+            <button id="uploadBtn" class="w-full mt-1 inline-flex items-center justify-center rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">Choose file…</button>
+          </label>
+          <button id="addTop" class="rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm">Add Top Text</button>
+          <button id="addBottom" class="rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm">Add Bottom Text</button>
+          <button id="addCustom" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">Add Free Text</button>
+          <button id="addEmoji" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">Add Emoji</button>
+        </div><div class="grid grid-cols-2 gap-2">
+      <button id="bgGradient" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">Gradient BG</button>
+      <button id="bgSolid" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">Solid BG</button>
+      <button id="fitContain" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">Fit</button>
+      <button id="fitCover" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">Fill</button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2">
+      <button id="downloadPNG" class="rounded-xl bg-emerald-600 text-white px-3 py-2 text-sm">Download PNG</button>
+      <button id="downloadJPG" class="rounded-xl bg-emerald-600 text-white px-3 py-2 text-sm">Download JPG</button>
+      <button id="clearCanvas" class="col-span-2 rounded-xl bg-rose-600 text-white px-3 py-2 text-sm">Clear</button>
+    </div>
+
+    <div class="space-y-2">
+      <label class="block text-sm">Canvas Size</label>
+      <div class="grid grid-cols-3 gap-2">
+        <button data-size="1080x1080" class="sizeBtn rounded-xl border border-slate-200 px-3 py-2 text-sm">1:1</button>
+        <button data-size="1080x1350" class="sizeBtn rounded-xl border border-slate-200 px-3 py-2 text-sm">4:5</button>
+        <button data-size="1080x1920" class="sizeBtn rounded-xl border border-slate-200 px-3 py-2 text-sm">9:16</button>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-dashed border-slate-300 p-3 text-xs text-slate-500">
+      <p class="font-semibold mb-1">Ad spot</p>
+      <p>Paste your ad code here (AdSense / Media.net). Keep it under the controls for high viewability.</p>
+      <!-- Example placeholder div; replace with your ad provider's snippet after approval -->
+      <div id="ad-slot-1" class="mt-2 h-28 bg-slate-100 rounded-lg flex items-center justify-center">Your ad here</div>
+    </div>
+  </div>
+</section>
+
+<!-- Stage -->
+<section class="lg:col-span-8">
+  <div class="bg-white rounded-2xl shadow-soft p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-semibold text-lg">Canvas</h2>
+      <div class="text-xs text-slate-500">Tip: double‑tap a text layer to edit</div>
+    </div>
+    <div class="overflow-auto">
+      <div id="stageWrap" class="mx-auto border border-slate-200 rounded-xl w-fit"></div>
+    </div>
+  </div>
+
+  <section id="how" class="mt-6 bg-white rounded-2xl shadow-soft p-4">
+    <h3 class="font-semibold text-lg mb-2">How it works</h3>
+    <ol class="list-decimal pl-5 space-y-1 text-sm">
+      <li>Upload an image or start with a gradient background.</li>
+      <li>Add top/bottom text, drag to position, pinch/scroll to resize.</li>
+      <li>Export as PNG/JPG and post anywhere.</li>
+    </ol>
+  </section>
+
+  <section id="faq" class="mt-6 grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-soft p-4">
+      <h4 class="font-semibold">Is this free?</h4>
+      <p class="text-sm text-slate-600">Yes. Everything runs in your browser. No sign‑up.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-soft p-4">
+      <h4 class="font-semibold">Do you store my images?</h4>
+      <p class="text-sm text-slate-600">No. Images never leave your device unless you share them.</p>
+    </div>
+  </section>
+
+  <section id="share" class="mt-6 bg-white rounded-2xl shadow-soft p-4 text-sm text-slate-600">
+    <p>Made with ❤️ to help you create faster. Share it with a friend!</p>
+  </section>
+</section>
+
+  </main>  <footer class="max-w-6xl mx-auto px-4 py-10 text-center text-xs text-slate-500">
+    <p>&copy; <span id="year"></span> Meme Studio Lite. All rights reserved.</p>
+  </footer>  <script>
+    // Year in footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Stage setup
+    const stageWrap = document.getElementById('stageWrap');
+    let STAGE_W = 1080, STAGE_H = 1080;
+    const stage = new Konva.Stage({ container: 'stageWrap', width: STAGE_W, height: STAGE_H });
+    const bgLayer = new Konva.Layer();
+    const imgLayer = new Konva.Layer();
+    const textLayer = new Konva.Layer();
+    stage.add(bgLayer); stage.add(imgLayer); stage.add(textLayer);
+
+    // Backing rect for solid/gradient backgrounds
+    const bgRect = new Konva.Rect({ x:0, y:0, width: STAGE_W, height: STAGE_H, fill: '#f1f5f9' });
+    bgLayer.add(bgRect); bgLayer.draw();
+
+    // Current image
+    let photo = null; // Konva.Image
+    let objectFit = 'contain';
+
+    function layoutPhoto() {
+      if (!photo) return;
+      const img = photo.image();
+      if (!img) return;
+      const cw = STAGE_W, ch = STAGE_H;
+      const iw = img.width, ih = img.height;
+      const cr = cw / ch, ir = iw / ih;
+      let w, h;
+      if (objectFit === 'cover') {
+        if (ir > cr) { // image wider
+          h = ch; w = h * ir;
+        } else { // taller
+          w = cw; h = w / ir;
+        }
+      } else { // contain
+        if (ir > cr) {
+          w = cw; h = w / ir;
+        } else {
+          h = ch; w = h * ir;
+        }
+      }
+      photo.width(w); photo.height(h);
+      photo.x((cw - w)/2); photo.y((ch - h)/2);
+      imgLayer.batchDraw();
+    }
+
+    // Image upload
+    const fileInput = document.getElementById('fileInput');
+    document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          if (!photo) {
+            photo = new Konva.Image({ image: img, draggable: true });
+            imgLayer.add(photo);
+          } else {
+            photo.image(img);
+          }
+          layoutPhoto();
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Background helpers
+    document.getElementById('bgSolid').addEventListener('click', () => {
+      const color = prompt('Enter hex or CSS color (e.g., #111827 or tomato):', '#111827');
+      if (color) { bgRect.fill(color); bgLayer.draw(); }
+    });
+    document.getElementById('bgGradient').addEventListener('click', () => {
+      const g = new Konva.Rect({ x:0, y:0, width: STAGE_W, height: STAGE_H });
+      g.fillLinearGradientStartPoint({ x:0, y:0});
+      g.fillLinearGradientEndPoint({ x: STAGE_W, y: STAGE_H});
+      // Random pleasant hues
+      const c1 = `hsl(${Math.floor(Math.random()*360)},85%,60%)`;
+      const c2 = `hsl(${(Math.floor(Math.random()*360)+120)%360},85%,60%)`;
+      g.fillLinearGradientColorStops([0, c1, 1, c2]);
+      bgLayer.removeChildren();
+      bgLayer.add(g);
+      bgLayer.draw();
+    });
+
+    // Fit mode
+    document.getElementById('fitContain').addEventListener('click', () => { objectFit = 'contain'; layoutPhoto(); });
+    document.getElementById('fitCover').addEventListener('click', () => { objectFit = 'cover'; layoutPhoto(); });
+
+    // Text helpers
+    function addText({text, y}) {
+      const t = new Konva.Text({
+        text, x: STAGE_W/2, y, fontSize: 96, fontFamily: 'Anton', fill: '#ffffff', align: 'center',
+        draggable: true, shadowColor: '#000', shadowBlur: 0, shadowOpacity: 1, shadowOffset: {x:3,y:3},
+        listening: true
+      });
+      // Center by offset
+      t.offsetX(t.width()/2);
+      // Double click to edit
+      t.on('dblclick dbltap', () => {
+        const newText = prompt('Edit text:', t.text());
+        if (newText !== null) { t.text(newText); t.offsetX(t.width()/2); textLayer.draw(); }
+      });
+      // Wheel to scale
+      t.on('wheel', (e) => {
+        e.evt.preventDefault();
+        const delta = e.evt.deltaY > 0 ? -6 : 6;
+        const next = Math.max(16, t.fontSize() + delta);
+        t.fontSize(next);
+        t.offsetX(t.width()/2);
+        textLayer.batchDraw();
+      });
+      textLayer.add(t); textLayer.draw();
+    }
+
+    document.getElementById('addTop').addEventListener('click', ()=> addText({text: 'TOP TEXT', y: 40}));
+    document.getElementById('addBottom').addEventListener('click', ()=> addText({text: 'BOTTOM TEXT', y: STAGE_H - 160}));
+    document.getElementById('addCustom').addEventListener('click', ()=> addText({text: prompt('Your text:','Your caption')||'Your caption', y: STAGE_H/2}));
+    document.getElementById('addEmoji').addEventListener('click', ()=> addText({text: prompt('Type an emoji (or paste):','🔥')||'🔥', y: STAGE_H/2}));
+
+    // Canvas size
+    function setCanvasSize(w, h) {
+      STAGE_W = w; STAGE_H = h;
+      stage.size({ width: w, height: h });
+      bgRect.width(w); bgRect.height(h);
+      layoutPhoto();
+      textLayer.getChildren().forEach(t => { if (t.y() > h - 100) t.y(h - 160); });
+      stage.draw();
+    }
+    document.querySelectorAll('.sizeBtn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const [w,h] = btn.dataset.size.split('x').map(Number);
+        setCanvasSize(w,h);
+      });
+    });
+
+    // Downloads
+    function download(uri, filename) {
+      const link = document.createElement('a');
+      link.download = filename; link.href = uri; document.body.appendChild(link); link.click(); link.remove();
+    }
+
+    document.getElementById('downloadPNG').addEventListener('click', ()=>{
+      const dataURL = stage.toDataURL({ pixelRatio: 1, mimeType: 'image/png' });
+      download(dataURL, 'meme.png');
+    });
+    document.getElementById('downloadJPG').addEventListener('click', ()=>{
+      const dataURL = stage.toDataURL({ pixelRatio: 1, mimeType: 'image/jpeg', quality: 0.92,});
+      download(dataURL, 'meme.jpg');
+    });
+
+    // Clear
+    document.getElementById('clearCanvas').addEventListener('click', ()=>{
+      imgLayer.removeChildren(); photo = null; imgLayer.draw();
+      textLayer.removeChildren(); textLayer.draw();
+      bgLayer.removeChildren();
+      bgLayer.add(bgRect); bgRect.fill('#f1f5f9'); bgLayer.draw();
+    });
+
+    // Accessibility: keyboard nudge for selected nodes
+    let selected = null;
+    stage.on('click tap', (e)=>{ selected = (e.target && e.target.draggable()) ? e.target : null; });
+    window.addEventListener('keydown', (e)=>{
+      if (!selected) return;
+      const step = e.shiftKey ? 10 : 2;
+      if (e.key === 'ArrowUp') { selected.y(selected.y()-step); }
+      if (e.key === 'ArrowDown') { selected.y(selected.y()+step); }
+      if (e.key === 'ArrowLeft') { selected.x(selected.x()-step); }
+      if (e.key === 'ArrowRight') { selected.x(selected.x()+step); }
+      textLayer.batchDraw(); imgLayer.batchDraw();
+    });
+  </script></body>
+  </html>
