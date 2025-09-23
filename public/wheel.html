@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Decision Wheel – Idea Roulette</title>
+  <meta name="description" content="Spin the wheel of decisions, ideas, and fun! Add your own options, shuffle presets, save lists, and share. Free tool that runs fully in your browser." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { boxShadow: { soft: '0 10px 30px rgba(0,0,0,0.12)'} } }
+    }
+  </script>
+  <style>
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(3600deg); }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-pink-500 to-orange-500"></div>
+        <div>
+          <h1 class="font-bold tracking-tight">Decision Wheel</h1>
+          <p class="text-xs text-slate-500 -mt-0.5">Idea roulette & random picker</p>
+        </div>
+      </div>
+      <nav class="hidden sm:flex items-center gap-3 text-sm">
+        <a href="/index.html" class="hover:text-indigo-600">Meme Studio</a>
+        <a href="/palette.html" class="hover:text-indigo-600">Palette Maker</a>
+        <a href="#presets" class="hover:text-indigo-600">Presets</a>
+        <a href="#faq" class="hover:text-indigo-600">FAQ</a>
+      </nav>
+    </div>
+  </header>  <main class="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-12 gap-6">
+    <!-- Controls -->
+    <section class="lg:col-span-4">
+      <div class="bg-white rounded-2xl shadow-soft p-4 space-y-4">
+        <h2 class="font-semibold text-lg">Controls</h2>
+        <textarea id="optionsInput" class="w-full h-40 rounded-xl border border-slate-200 p-2 text-sm" placeholder="Enter options, one per line..."></textarea>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="spinBtn" class="rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm">Spin!</button>
+          <button id="shuffleBtn" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">Shuffle list</button>
+          <button id="saveBtn" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">Save list</button>
+          <button id="loadBtn" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">Load saved</button>
+        </div><div class="rounded-xl border border-dashed border-slate-300 p-3 text-xs text-slate-500">
+      <p class="font-semibold mb-1">Ad spot</p>
+      <p>Perfect placement under the spin controls. Paste your ad code here.</p>
+      <div class="mt-2 h-28 bg-slate-100 rounded-lg flex items-center justify-center">Your ad here</div>
+    </div>
+  </div>
+</section>
+
+<!-- Wheel -->
+<section class="lg:col-span-8">
+  <div class="bg-white rounded-2xl shadow-soft p-4 text-center">
+    <h2 class="font-semibold text-lg mb-3">Wheel</h2>
+    <canvas id="wheelCanvas" width="500" height="500" class="mx-auto"></canvas>
+    <p id="result" class="mt-4 font-bold text-xl text-indigo-600"></p>
+  </div>
+
+  <section id="presets" class="mt-6 bg-white rounded-2xl shadow-soft p-4">
+    <h3 class="font-semibold text-lg mb-2">Preset Idea Lists</h3>
+    <p class="text-sm text-slate-600 mb-2">Click to load instantly:</p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+      <button class="presetBtn rounded-xl border border-slate-200 px-3 py-2" data-list="Pizza,Burgers,Sushi,Tacos,Pasta,Salad,BBQ">Dinner ideas</button>
+      <button class="presetBtn rounded-xl border border-slate-200 px-3 py-2" data-list="Netflix,Hulu,Disney+,Prime Video,YouTube,TikTok">What to watch</button>
+      <button class="presetBtn rounded-xl border border-slate-200 px-3 py-2" data-list="Push-ups,Squats,Plank,Jumping Jacks,Stretch,Yoga">Quick workout</button>
+      <button class="presetBtn rounded-xl border border-slate-200 px-3 py-2" data-list="Beach,Hiking,Picnic,Shopping,Museum,Arcade">Weekend plans</button>
+      <button class="presetBtn rounded-xl border border-slate-200 px-3 py-2" data-list="Write a post,Record a TikTok,Go Live,Edit photos,Brainstorm">Content ideas</button>
+      <button class="presetBtn rounded-xl border border-slate-200 px-3 py-2" data-list="Rock,Pop,Hip-hop,Jazz,Country,EDM,Classical">Music genre</button>
+      <button class="presetBtn rounded-xl border border-slate-200 px-3 py-2" data-list="Read a book,Go for a walk,Journal,Call a friend,Try a new recipe">Self-care ideas</button>
+      <button class="presetBtn rounded-xl border border-slate-200 px-3 py-2" data-list="Build a site,Try a new AI tool,Design a logo,Start a blog,Learn coding">Side hustle ideas</button>
+      <button class="presetBtn rounded-xl border border-slate-200 px-3 py-2" data-list="Truth,Dare,Sing,Dance,Imitate someone,Make a joke">Party roulette</button>
+    </div>
+  </section>
+
+  <section id="faq" class="mt-6 grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-soft p-4">
+      <h4 class="font-semibold">Can I add unlimited options?</h4>
+      <p class="text-sm text-slate-600">Yes. Paste or type as many as you like, the wheel will resize automatically.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-soft p-4">
+      <h4 class="font-semibold">Do you save my lists?</h4>
+      <p class="text-sm text-slate-600">You can save locally in your browser. Nothing is uploaded.</p>
+    </div>
+  </section>
+</section>
+
+  </main>  <footer class="max-w-6xl mx-auto px-4 py-10 text-center text-xs text-slate-500">
+    <p>&copy; <span id="year"></span> Decision Wheel.</p>
+  </footer>  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const resultEl = document.getElementById('result');
+    const optionsInput = document.getElementById('optionsInput');
+
+    let options = ["Yes","No","Maybe"];
+    let spinning = false;
+    let angle = 0;
+
+    function drawWheel(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const radius = canvas.width/2;
+      const step = 2*Math.PI / options.length;
+      options.forEach((opt,i)=>{
+        const start = i*step + angle;
+        ctx.beginPath();
+        ctx.moveTo(radius,radius);
+        ctx.arc(radius,radius,radius,start,start+step);
+        ctx.fillStyle = i%2? '#f9a8d4':'#93c5fd';
+        ctx.fill();
+        ctx.save();
+        ctx.translate(radius,radius);
+        ctx.rotate(start+step/2);
+        ctx.fillStyle='#111827';
+        ctx.font='16px Inter';
+        ctx.fillText(opt, radius/2, 5);
+        ctx.restore();
+      });
+      // Arrow
+      ctx.fillStyle='red';
+      ctx.beginPath();
+      ctx.moveTo(radius,0);
+      ctx.lineTo(radius-20,20);
+      ctx.lineTo(radius+20,20);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function spinWheel(){
+      if(spinning) return;
+      spinning=true;
+      const duration = 4000+Math.random()*2000;
+      const target = angle + (10+Math.random()*10)*2*Math.PI;
+      const start = performance.now();
+      function anim(t){
+        const elapsed = t-start;
+        if(elapsed<duration){
+          const progress = elapsed/duration;
+          angle = target*easeOut(progress);
+          drawWheel();
+          requestAnimationFrame(anim);
+        } else {
+          angle = target;
+          drawWheel();
+          spinning=false;
+          const idx = Math.floor(((2*Math.PI - (angle%(2*Math.PI)))/(2*Math.PI))*options.length)%options.length;
+          resultEl.textContent = 'Result: '+options[idx];
+        }
+      }
+      requestAnimationFrame(anim);
+    }
+    function easeOut(t){ return 1 - Math.pow(1-t,3); }
+
+    document.getElementById('spinBtn').onclick = spinWheel;
+    document.getElementById('shuffleBtn').onclick = ()=>{
+      options = options.sort(()=>Math.random()-0.5); drawWheel();
+    };
+    document.getElementById('saveBtn').onclick = ()=>{
+      localStorage.setItem('decisionWheelList', options.join('\n'));
+      alert('Saved!');
+    };
+    document.getElementById('loadBtn').onclick = ()=>{
+      const saved = localStorage.getItem('decisionWheelList');
+      if(saved){ options = saved.split(/\n|,/).map(x=>x.trim()).filter(Boolean); updateInput(); drawWheel(); }
+    };
+
+    document.querySelectorAll('.presetBtn').forEach(btn=>{
+      btn.onclick = ()=>{
+        options = btn.dataset.list.split(','); updateInput(); drawWheel();
+      };
+    });
+
+    function updateInput(){ optionsInput.value = options.join('\n'); }
+    optionsInput.addEventListener('input', ()=>{
+      options = optionsInput.value.split(/\n|,/).map(x=>x.trim()).filter(Boolean);
+      drawWheel();
+    });
+
+    drawWheel(); updateInput();
+  </script></body>
+</html>
